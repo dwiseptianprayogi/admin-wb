@@ -116,9 +116,15 @@
               <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix">
                 <div class="accordion-body">
                   <select name="product[]" id="product" class="form-select">
-                    <option value="KANMURI">KANMURI</option>
+                    <option value="SCRAP">SCRAP</option>
+                    <option value="ASSET">ASSET</option>
+                    <option value="ROOFTILE">ROOFTILE</option>
                     <option value="GRACEWOOD">GRACEWOOD</option>
-                    <option value="OTHER_PRODUCTS">OTHER PRODUCTS</option>
+                    <!-- <option value="OTHER_PRODUCTS">OTHER PRODUCTS</option> -->
+
+                  <!-- <option value="KANMURI">KANMURI</option>
+                    <option value="GRACEWOOD">GRACEWOOD</option>
+                    <option value="OTHER_PRODUCTS">OTHER PRODUCTS</option> -->
                   </select>
                 </div>
               </div>

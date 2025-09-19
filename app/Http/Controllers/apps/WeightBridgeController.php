@@ -578,10 +578,14 @@ class WeightBridgeController extends Controller
             if ($productStr != '') {
                 $query .= " AND (
                                 CASE
-                                    WHEN T1.TranDocTypeID LIKE 'PK.%'
-                                    OR T1.TranDocTypeID LIKE 'PF.%' THEN 'KANMURI'
-                                    WHEN T1.TranDocTypeID LIKE 'LG.%' THEN 'GRACEWOOD'
-                                    ELSE 'Other Product'
+                                    WHEN T1.TranDocTypeID LIKE '%CSE-SPMB-1%' THEN 'SCRAP'
+                                    WHEN T1.TranDocTypeID LIKE '%CSE-SPMB-2%' THEN 'ASSET'
+                                    WHEN T1.TranDocTypeID IN ('CSE - SPB-1', 'CSE - SPB-2', 'CSE - SPB-3', 'CSE - SPB-4') THEN 'ROOFTILE'
+                                    WHEN T1.TranDocTypeID IN ('CSE - SPB-5', 'CSE - SPB-6', 'CSE - SPB-7', 'CSE - SPB-8') THEN 'GRACEWOOD'
+
+                                    -- WHEN T1.TranDocTypeID LIKE 'PK.%' OR T1.TranDocTypeID LIKE 'PF.%' THEN 'KANMURI'
+                                    -- WHEN T1.TranDocTypeID LIKE 'LG.%' THEN 'GRACEWOOD'
+                                    -- ELSE 'Other Product'
                                 END
                             ) IN (" . rtrim($productStr, ',') . ")";
                 $hasFilter = true;
