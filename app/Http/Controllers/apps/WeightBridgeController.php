@@ -494,7 +494,6 @@ class WeightBridgeController extends Controller
               WHERE
                   T1.ReadyToInvoice = 1
                   AND T1.Company = 'KMP'
-                  AND T1.NoDokumen_c <> ''
             ";
 
         // filter by date
@@ -578,12 +577,46 @@ class WeightBridgeController extends Controller
             if ($productStr != '') {
                 $query .= " AND (
                                 CASE
-                                    WHEN T1.TranDocTypeID LIKE 'PK.%'
-                                    OR T1.TranDocTypeID LIKE 'PF.%' THEN 'KANMURI'
-                                    WHEN T1.TranDocTypeID LIKE 'LG.%' THEN 'GRACEWOOD'
-                                    ELSE 'Other Product'
+                                    WHEN T1.TranDocTypeID LIKE '%CSE-SPMB-1%' THEN 'SCRAP'
+                                    WHEN T1.TranDocTypeID LIKE '%CSE-SPMB-2%' THEN 'ASSET'
+                                    WHEN T1.TranDocTypeID IN ('CSE - SPB-1', 'CSE - SPB-2', 'CSE - SPB-3', 'CSE - SPB-4') THEN 'ROOFTILE'
+                                    WHEN T1.TranDocTypeID IN ('CSE - SPB-5', 'CSE - SPB-6', 'CSE - SPB-7', 'CSE - SPB-8') THEN 'GRACEWOOD'
+
+                                    -- WHEN T1.TranDocTypeID LIKE 'PK.%' OR T1.TranDocTypeID LIKE 'PF.%' THEN 'KANMURI'
+                                    -- WHEN T1.TranDocTypeID LIKE 'LG.%' THEN 'GRACEWOOD'
+                                    -- ELSE 'Other Product'
                                 END
                             ) IN (" . rtrim($productStr, ',') . ")";
+                $hasFilter = true;
+            }
+        }
+
+                // filter by Kwitansi No
+        if ($request->get('kwitansi') != null) {
+            $kwitansiNo = $request->get('kwitansi');
+            $kwitansiNoStr = '';
+            foreach ($kwitansiNo as $value) {
+                if ($value) {
+                    $kwitansiNoStr .= "'$value',";
+                }
+            }
+            if ($kwitansiNoStr != '') {
+                $query .= "AND T1.KwitnsiNo_c IN (" . rtrim($kwitansiNoStr, ',') . ")";
+                $hasFilter = true;
+            }
+        }
+
+        // filter by wb doc
+        if ($request->get('wbdoc') != null) {
+            $wbdocNo = $request->get('wbdoc');
+            $wbdocNoStr = '';
+            foreach ($wbdocNo as $value) {
+                if ($value) {
+                    $wbdocNoStr .= "'$value',";
+                }
+            }
+            if ($wbdocNoStr != '') {
+                $query .= "AND T1.NoDokumen_c IN (" . rtrim($wbdocNoStr, ',') . ")";
                 $hasFilter = true;
             }
         }

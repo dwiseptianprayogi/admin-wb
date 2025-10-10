@@ -116,10 +116,45 @@
               <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix">
                 <div class="accordion-body">
                   <select name="product[]" id="product" class="form-select">
-                    <option value="KANMURI">KANMURI</option>
+                    <option value="SCRAP">SCRAP</option>
+                    <option value="ASSET">ASSET</option>
+                    <option value="ROOFTILE">ROOFTILE</option>
                     <option value="GRACEWOOD">GRACEWOOD</option>
-                    <option value="OTHER_PRODUCTS">OTHER PRODUCTS</option>
                   </select>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingSeven">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                  Kwitansi No
+                </button>
+              </h2>
+              <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven">
+                <div class="accordion-body">
+                  <select name="kwitansi[]" id="kwitansi" class="form-select">
+                  </select>
+                  <div class="row mt-2">
+                    <div class="col"><input type="text" class="form-control" name="kwitansi_string" placeholder="Kwitansi No"></div>
+                    <div class="col"><button type="button" class="btn btn-primary" id="btn-add-kwitansi">Add</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingEight">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                  WB Doc
+                </button>
+              </h2>
+              <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight">
+                <div class="accordion-body">
+                  <select name="wbdoc[]" id="wbdoc" class="form-select">
+                  </select>
+                  <div class="row mt-2">
+                    <div class="col"><input type="text" class="form-control" name="wbdoc_string" placeholder="wbdoc"></div>
+                    <div class="col"><button type="button" class="btn btn-primary" id="btn-add-wbdoc">Add</button></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -134,17 +169,17 @@
       </form>
       {{-- // form filter --}}
       <div class="container-fluid py-3">
-        <h4 class="text-center mb-4">PT KERAMINDO MEGAH PERTIWI<br>ESTIMATED PAYMENT TO TRANSPORTER</h4>
-        @php
-        // Initialize totals for the footer
-        $totalQuantity = 0;
-        $totalStdWeight = 0;
-        $totalWeight = 0;
-        $totalVar = 0;
-        $totalRate = 0;
-        $totalAmount = 0;
-        @endphp
+        <h4 class="text-center mb-4">PT KERAMINDO MEGAH PERTIWI<br>PAYMENT TO TRANSPORTER</h4>
         @foreach ($reports as $key => $report)
+        @php
+            // Inisialisasi total transporter
+            $totalQuantity = 0;
+            $totalStdWeight = 0;
+            $totalWeight = 0;
+            $totalVar = 0;
+            $totalRate = 0;
+            $totalAmount = 0;
+        @endphp
         <div class="table-responsive mt-5">
           <table class="table table-bordered table-sm">
             <!-- Header Section -->
@@ -189,76 +224,122 @@
             <!-- Body Section -->
             <tbody>
               @php
-              $subtotalQuantity = 0;
-              $subtotalStdWeight = 0;
-              $subtotalWeight = 0;
-              $subtotalVar = 0;
-              $subtotalRate = 0;
-              $subtotalAmount = 0;
+              // Group data per area
+              $areaGroups = [];
+              foreach ($report as $data) {
+                  $areaKey = empty($data->Area) ? 'N/A' : $data->Area;
+                  $areaGroups[$areaKey][] = $data;
+              }
+              // Sort so 'N/A' is first
+              uksort($areaGroups, function($a, $b) {
+                  if ($a === 'N/A') return -1;
+                  if ($b === 'N/A') return 1;
+                  return strcmp($a, $b);
+              });
               @endphp
 
-              @foreach($report as $data)
-              @php
-              $subtotalQuantity += $data->Quantity ?? 0;
-              $subtotalStdWeight += $data->StdWeight ?? 0;
-              $subtotalWeight += $data->Weight ?? 0;
-              $subtotalVar += $data->VarKg ?? 0;
-              $subtotalRate += $data->Rate ?? 0;
-              $subtotalAmount += $data->Amount ?? 0;
+              @foreach($areaGroups as $area => $rows)
+                  @php
+                    $subtotalQuantity = 0;
+                    $subtotalStdWeight = 0;
+                    $subtotalWeight = 0;
+                    $subtotalVar = 0;
+                    $subtotalRate = 0;
+                    $subtotalAmount = 0;
+                  @endphp
 
-              // Accumulate into the footer totals
-              $totalQuantity += $data->Quantity ?? 0;
-              $totalStdWeight += $data->StdWeight ?? 0;
-              $totalWeight += $data->Weight ?? 0;
-              $totalVar += $data->VarKg ?? 0;
-              $totalRate += $data->Rate ?? 0;
-              $totalAmount += $data->Amount ?? 0;
-              @endphp
-              <tr class="small">
-                <td>{{ $data->DoNo ?? 'N/A' }}</td>
-                <td>
-                  {{ $data->date ? \Carbon\Carbon::parse(str_replace(':AM', ' AM', str_replace(':PM', ' PM', $data->date)))->format('d-m-Y') : '' }}
-                </td>
-                <td>{{ empty($data->PlateNo) ? 'N/A' : $data->PlateNo }}</td>
-                <td>{{ empty($data->VehicleGroup) ? 'N/A' : $data->VehicleGroup }}</td>
-                <td>{{ empty($data->Area) ? 'N/A' : $data->Area }}</td>
-                <td class="text-end">{{ number_format($data->Quantity ?? 0, 0) }}</td>
-                <td>{{ $data->WbDoc ?? 'N/A' }}</td>
-                <td class="text-end">{{ number_format($data->StdWeight ?? 0, 2) }}</td>
-                <td class="text-end">{{ number_format($data->Weight ?? 0, 2) }}</td>
-                <td class="text-end">{{ number_format($data->VarKg ?? 0, 2) }}</td>
-                <td class="text-end">{{ number_format($data->Rate ?? 0, 2) }}</td>
-                <td class="text-end">{{ number_format($data->Amount ?? 0, 2) }}</td>
-                <td>{{ empty($data->Kwitansi_NO) ? 'N/A' : $data->Kwitansi_NO }}</td>
-              </tr>
+                  @foreach($rows as $data)
+                      @php
+                        $subtotalQuantity += $data->Quantity ?? 0;
+                        $subtotalStdWeight += $data->StdWeight ?? 0;
+                        $subtotalWeight += $data->Weight ?? 0;
+                        $subtotalVar += $data->VarKg ?? 0;
+                        $subtotalRate += $data->Rate ?? 0;
+                        $subtotalAmount += $data->Amount ?? 0;
+                      @endphp
+                      <tr class="small">
+                          <td>{{ $data->DoNo ?? 'N/A' }}</td>
+                          <td>{{ $data->date ? \Carbon\Carbon::parse(str_replace(':AM', ' AM', str_replace(':PM', ' PM', $data->date)))->format('d-m-Y') : '' }}</td>
+                          <td>{{ empty($data->PlateNo) ? 'N/A' : $data->PlateNo }}</td>
+                          <td>{{ empty($data->VehicleGroup) ? 'N/A' : $data->VehicleGroup }}</td>
+                          <td>{{ empty($data->Area) ? 'N/A' : $data->Area }}</td>
+                          <td class="text-end">{{ number_format($data->Quantity ?? 0, 0) }}</td>
+                          <td>{{ empty($data->WbDoc) ? 'N/A' : $data->WbDoc }}</td>
+                          <td class="text-end">{{ number_format($data->StdWeight ?? 0, 2) }}</td>
+                          <td class="text-end">{{ number_format($data->Weight ?? 0, 2) }}</td>
+                          <td class="text-end">{{ number_format($data->VarKg ?? 0, 2) }}</td>
+                          <td class="text-end">{{ number_format($data->Rate ?? 0, 2) }}</td>
+                          <td class="text-end">{{ number_format($data->Amount ?? 0, 2) }}</td>
+                          <td>{{ empty($data->Kwitansi_NO) ? 'N/A' : $data->Kwitansi_NO }}</td>
+                      </tr>
+                  @endforeach
+
+                  {{-- Subtotal per area --}}
+                  <tr class="table-secondary fw-bold small">
+                      <td colspan="5" class="text-end">Sub Total</td>
+                      <td class="text-end">{{ number_format($subtotalQuantity, 0) }}</td>
+                      <td></td>
+                      <td class="text-end">{{ number_format($subtotalStdWeight, 2) }}</td>
+                      <td class="text-end">{{ number_format($subtotalWeight, 2) }}</td>
+                      <td class="text-end">{{ number_format($subtotalVar, 2) }}</td>
+                      <td class="text-end">{{ number_format($subtotalRate, 2) }}</td>
+                      <td class="text-end">{{ number_format($subtotalAmount, 0) }}</td>
+                      <td></td>
+                  </tr>
+                  @php
+                    // Accumulate total transporter
+                    $totalQuantity += $subtotalQuantity;
+                    $totalStdWeight += $subtotalStdWeight;
+                    $totalWeight += $subtotalWeight;
+                    $totalVar += $subtotalVar;
+                    $totalRate += $subtotalRate;
+                    $totalAmount += $subtotalAmount;
+                  @endphp
               @endforeach
 
-              <!-- Subtotal Row -->
+              {{-- Total area (per transporter) --}}
               <tr class="table-secondary fw-bold small">
-                <td colspan="5" class="text-end">@if($is_multi_transporter)Sub @endif Total</td>
-                <td class="text-end">{{ number_format($subtotalQuantity, 0) }}</td>
-                <td></td>
-                <td class="text-end">{{ number_format($subtotalStdWeight, 2) }}</td>
-                <td class="text-end">{{ number_format($subtotalWeight, 2) }}</td>
-                <td class="text-end">{{ number_format($subtotalVar, 2) }}</td>
-                <td class="text-end">{{ number_format($subtotalRate, 2) }}</td>
-                <td class="text-end">{{ number_format($subtotalAmount, 0) }}</td>
-                <td></td>
+                  <td colspan="5" class="text-end">Total</td>
+                  <td class="text-end">{{ number_format($totalQuantity, 0) }}</td>
+                  <td></td>
+                  <td class="text-end">{{ number_format($totalStdWeight, 2) }}</td>
+                  <td class="text-end">{{ number_format($totalWeight, 2) }}</td>
+                  <td class="text-end">{{ number_format($totalVar, 2) }}</td>
+                  <td class="text-end">{{ number_format($totalRate, 2) }}</td>
+                  <td class="text-end">{{ number_format($totalAmount, 0) }}</td>
+                  <td></td>
               </tr>
+              @php
+                // Accumulate grand total if multi transporter
+                if (!isset($grandTotalQuantity)) {
+                    $grandTotalQuantity = 0;
+                    $grandTotalStdWeight = 0;
+                    $grandTotalWeight = 0;
+                    $grandTotalVar = 0;
+                    $grandTotalRate = 0;
+                    $grandTotalAmount = 0;
+                }
+                $grandTotalQuantity += $totalQuantity;
+                $grandTotalStdWeight += $totalStdWeight;
+                $grandTotalWeight += $totalWeight;
+                $grandTotalVar += $totalVar;
+                $grandTotalRate += $totalRate;
+                $grandTotalAmount += $totalAmount;
+              @endphp
             </tbody>
 
-            <!-- Footer Totals -->
+            {{-- Grand Total if multi transporter --}}
             @if($is_multi_transporter)
             @if($loop->last)
-            <tr class="small">
-              <td colspan="5" class="text-end">Total</td>
-              <td class="text-end">{{ number_format($totalQuantity, 0) }}</td>
+            <tr class="table-secondary fw-bold small">
+              <td colspan="5" class="text-end">Grand Total</td>
+              <td class="text-end">{{ number_format($grandTotalQuantity, 0) }}</td>
               <td></td>
-              <td class="text-end">{{ number_format($totalStdWeight, 2) }}</td>
-              <td class="text-end">{{ number_format($totalWeight, 2) }}</td>
-              <td class="text-end">{{ number_format($totalVar, 2) }}</td>
-              <td class="text-end">{{ number_format($totalRate, 2) }}</td>
-              <td class="text-end">{{ number_format($totalAmount, 0) }}</td>
+              <td class="text-end">{{ number_format($grandTotalStdWeight, 2) }}</td>
+              <td class="text-end">{{ number_format($grandTotalWeight, 2) }}</td>
+              <td class="text-end">{{ number_format($grandTotalVar, 2) }}</td>
+              <td class="text-end">{{ number_format($grandTotalRate, 2) }}</td>
+              <td class="text-end">{{ number_format($grandTotalAmount, 0) }}</td>
               <td></td>
             </tr>
             @endif
@@ -267,9 +348,6 @@
         </div>
         @endforeach
       </div>
-      {{-- <div class="table-responsive text-nowrap p-4">
-        @dd($reports)
-      </div> --}}
     </div>
   </div>
 </div>
@@ -318,13 +396,13 @@
       allowClear: true,
       multiple: true
     });
-    $(".export-btn").on("click", function () {
-        let exportType = $(this).data("type"); // export (PDF/CSV)
-        let currentUrl = new URL(window.location.href);
+    $(".export-btn").on("click", function() {
+      let exportType = $(this).data("type"); // export (PDF/CSV)
+      let currentUrl = new URL(window.location.href);
 
-        currentUrl.searchParams.set("export", exportType);
+      currentUrl.searchParams.set("export", exportType);
 
-        window.location.href = currentUrl.toString();
+      window.open(currentUrl.toString(), '_blank');
     });
     $('#btn-filter').on('click', function() {
       $('#export').val(null)
@@ -367,6 +445,50 @@
       } else {
         alert('Please enter a SPB to add.');
       }
+    });
+    $('#btn-add-kwitansi').on('click', function() {
+      // Get the value from the input field
+      const doNumber = $('input[name="kwitansi_string"]').val();
+
+      if (doNumber) {
+        // Create a new option
+        const newOption = new Option(doNumber, doNumber, false, true);
+
+        // Add the new option to the select element
+        $('#kwitansi').append(newOption).trigger('change');
+        // Clear the input field
+        $('input[name="kwitansi_string"]').val('');
+      } else {
+        alert('Please enter a Kwitansi No to add.');
+      }
+    });
+    $('#kwitansi').val(null).trigger('change');
+    $('#kwitansi').select2({
+      placeholder: 'Empty',
+      allowClear: true,
+      multiple: true
+    });
+    $('#btn-add-wbdoc').on('click', function() {
+      // Get the value from the input field
+      const doNumber = $('input[name="wbdoc_string"]').val();
+
+      if (doNumber) {
+        // Create a new option
+        const newOption = new Option(doNumber, doNumber, false, true);
+
+        // Add the new option to the select element
+        $('#wbdoc').append(newOption).trigger('change');
+        // Clear the input field
+        $('input[name="wbdoc_string"]').val('');
+      } else {
+        alert('Please enter a wbdoc No to add.');
+      }
+    });
+    $('#wbdoc').val(null).trigger('change');
+    $('#wbdoc').select2({
+      placeholder: 'Empty',
+      allowClear: true,
+      multiple: true
     });
     // $('#accordion').on('shown.bs.collapse', function() {
 

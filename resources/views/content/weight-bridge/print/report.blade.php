@@ -97,17 +97,17 @@
         Retrieved Date: {{ $current_date_time }}
     </div>
     <div class="container-fluid">
-        <h4>PT KERAMINDO MEGAH PERTIWI<br>ESTIMATED PAYMENT TO TRANSPORTER</h4>
-        @php
-        // Initialize totals for the footer
-        $totalQuantity = 0;
-        $totalStdWeight = 0;
-        $totalWeight = 0;
-        $totalVar = 0;
-        $totalRate = 0;
-        $totalAmount = 0;
-        @endphp
+        <h4>PT KERAMINDO MEGAH PERTIWI<br>PAYMENT TO TRANSPORTER</h4>
         @foreach ($reports as $key => $report)
+        @php
+            // Initialize totals for the footer
+            $totalQuantity = 0;
+            $totalStdWeight = 0;
+            $totalWeight = 0;
+            $totalVar = 0;
+            $totalRate = 0;
+            $totalAmount = 0;
+        @endphp
         <table>
             <tr>
                 <th colspan="1" style="background: white; width:120px;">
@@ -156,31 +156,38 @@
 
             <!-- Body Section -->
             <tbody>
+            @php
+              // Group data per area
+              $areaGroups = [];
+              foreach ($report as $data) {
+                  $areaKey = empty($data->Area) ? 'N/A' : $data->Area;
+                  $areaGroups[$areaKey][] = $data;
+              }
+              // Sort so 'N/A' is first
+              uksort($areaGroups, function($a, $b) {
+                  if ($a === 'N/A') return -1;
+                  if ($b === 'N/A') return 1;
+                  return strcmp($a, $b);
+              });
+            @endphp
+            @foreach($areaGroups as $area => $rows)
                 @php
-                $subtotalQuantity = 0;
-                $subtotalStdWeight = 0;
-                $subtotalWeight = 0;
-                $subtotalVar = 0;
-                $subtotalRate = 0;
-                $subtotalAmount = 0;
+                    $subtotalQuantity = 0;
+                    $subtotalStdWeight = 0;
+                    $subtotalWeight = 0;
+                    $subtotalVar = 0;
+                    $subtotalRate = 0;
+                    $subtotalAmount = 0;
                 @endphp
 
-                @foreach($report as $data)
+                @foreach($rows as $data)
                 @php
-                $subtotalQuantity += $data->Quantity ?? 0;
-                $subtotalStdWeight += $data->StdWeight ?? 0;
-                $subtotalWeight += $data->Weight ?? 0;
-                $subtotalVar += $data->VarKg ?? 0;
-                $subtotalRate += $data->Rate ?? 0;
-                $subtotalAmount += $data->Amount ?? 0;
-
-                // Accumulate into the footer totals
-                $totalQuantity += $data->Quantity ?? 0;
-                $totalStdWeight += $data->StdWeight ?? 0;
-                $totalWeight += $data->Weight ?? 0;
-                $totalVar += $data->VarKg ?? 0;
-                $totalRate += $data->Rate ?? 0;
-                $totalAmount += $data->Amount ?? 0;
+                    $subtotalQuantity += $data->Quantity ?? 0;
+                    $subtotalStdWeight += $data->StdWeight ?? 0;
+                    $subtotalWeight += $data->Weight ?? 0;
+                    $subtotalVar += $data->VarKg ?? 0;
+                    $subtotalRate += $data->Rate ?? 0;
+                    $subtotalAmount += $data->Amount ?? 0;
                 @endphp
                 <tr class="small">
                     <td>{{ empty($data->DoNo) ? 'N/A' : $data->DoNo }}</td>
@@ -200,10 +207,10 @@
                     <td>{{ empty($data->Kwitansi_NO) ? 'N/A' : $data->Kwitansi_NO }}</td>
                 </tr>
                 @endforeach
-                <!-- Subtotal Row -->
 
+                <!-- Subtotal per area -->
                 <tr class="table-secondary fw-bold small" style="background: #f4f4f4;">
-                    <td colspan="5" class="text-end">@if($is_multi_transporter)Sub @endif Total</td>
+                    <td colspan="5" class="text-end">Sub Total</td>
                     <td class="text-start">{{ number_format($subtotalQuantity, 0) }}</td>
                     <td></td>
                     <td class="text-start">{{ number_format($subtotalStdWeight, 2) }}</td>
@@ -213,11 +220,20 @@
                     <td class="text-start">{{ number_format($subtotalAmount, 0) }}</td>
                     <td></td>
                 </tr>
+                @php
+                    // Accumulate total transporter
+                    $totalQuantity += $subtotalQuantity;
+                    $totalStdWeight += $subtotalStdWeight;
+                    $totalWeight += $subtotalWeight;
+                    $totalVar += $subtotalVar;
+                    $totalRate += $subtotalRate;
+                    $totalAmount += $subtotalAmount;
+                @endphp
             </tbody>
-            <!-- Footer Totals -->
-            @if($is_multi_transporter)
-            @if($loop->last)
-            <tr class="table-dark fw-bold small" style="background: #f4f4f4;">
+            @endforeach
+
+            <!-- Total area (per transporter) -->
+            <tr class="table-primary fw-bold small" style="background: #f4f4f4;">
                 <td colspan="5" class="text-end">Total</td>
                 <td class="text-start">{{ number_format($totalQuantity, 0) }}</td>
                 <td></td>
@@ -226,6 +242,38 @@
                 <td class="text-start">{{ number_format($totalVar, 2) }}</td>
                 <td class="text-start">{{ number_format($totalRate, 2) }}</td>
                 <td class="text-start">{{ number_format($totalAmount, 0) }}</td>
+                <td></td>
+            </tr>
+            @php
+                // Accumulate grand total if multi transporter
+                if (!isset($grandTotalQuantity)) {
+                    $grandTotalQuantity = 0;
+                    $grandTotalStdWeight = 0;
+                    $grandTotalWeight = 0;
+                    $grandTotalVar = 0;
+                    $grandTotalRate = 0;
+                    $grandTotalAmount = 0;
+                }
+                $grandTotalQuantity += $totalQuantity;
+                $grandTotalStdWeight += $totalStdWeight;
+                $grandTotalWeight += $totalWeight;
+                $grandTotalVar += $totalVar;
+                $grandTotalRate += $totalRate;
+                $grandTotalAmount += $totalAmount;
+            @endphp
+
+            <!-- Footer Totals -->
+            @if($is_multi_transporter)
+            @if($loop->last)
+            <tr class="table-success fw-bold small" style="background: #f4f4f4;">
+                <td colspan="5" class="text-end">Grand Total</td>
+                <td class="text-start">{{ number_format($grandTotalQuantity, 0) }}</td>
+                <td></td>
+                <td class="text-start">{{ number_format($grandTotalStdWeight, 2) }}</td>
+                <td class="text-start">{{ number_format($grandTotalWeight, 2) }}</td>
+                <td class="text-start">{{ number_format($grandTotalVar, 2) }}</td>
+                <td class="text-start">{{ number_format($grandTotalRate, 2) }}</td>
+                <td class="text-start">{{ number_format($grandTotalAmount, 0) }}</td>
                 <td></td>
             </tr>
             @endif

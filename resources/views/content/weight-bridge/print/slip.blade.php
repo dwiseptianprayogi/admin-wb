@@ -57,23 +57,23 @@ PT. KERAMINDO MEGAH PERTIWI <br>TANGERANG
 <br>
 SLIP TIMBANGAN
 ----------------------------------------
-No.Doc     :{{ $slip_no }} Date:{{ date('d-m-Y', strtotime($weight_in_date)) }}
+No Doc     :{{ $slip_no }} Date:{{ date('d-m-Y', strtotime($weight_in_date)) }}
 No Polisi  :{{ $vehicle_no }}           > {{ ($status == 'FG-OUT' || $status == 'RM-OUT') ? 'Keluar' : 'Masuk' }}
 @if($weight_type == "fg")
 Transporter:{{ $transporter_name }}
 ----------------------------------------
-Jenis Kendaraan: {{ $vehicle_type }}
+Jenis Kendaraan:{{ $vehicle_type }}
 @else
 ----------------------------------------
 @endif
-Jenis Muatan   : {{ ($weight_type == 'rm' ? 'Raw Material' : 'Finish Good') }}
-Keterangan     : {{$remark}}
+Jenis Muatan   :{{ ($weight_type == 'rm' ? 'Raw Material' : 'Finished Good') }}
+Keterangan     :{{$remark}}
 ----------------------------------------
-Masuk (KG):{{ number_format($weight_in) }}Kg Time In:{{ $weight_in_time }}
-Keluar(KG):{{ number_format($weight_out) }}Kg Date Out:{{ date('d-m-Y', strtotime($weight_out_date)) }}
-Netto (KG):{{ number_format($weight_netto) }}Kg Time Out:{{ $weight_out_time }}
+Masuk :{{ number_format($weight_in) }} Kg Time In:{{ $weight_in_time }}
+Keluar:{{ number_format($weight_out) }} Kg Date Out:@if($status == 'FG-OUT' || $status == 'RM-OUT'){{ date('d-m-Y', strtotime($weight_out_date)) }}@endif&nbsp;
+Netto :{{ number_format($weight_netto) }} Kg Time Out:{{ $weight_out_time }}
 ----------------------------------------
-Petugas Timbangan              Pengemudi
+Petugas Timbang            Pengemudi
 &nbsp;
 &nbsp;
 (               )      (               )

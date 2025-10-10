@@ -42,7 +42,7 @@ class Transporter extends Model
 		'name',
 		'code',
 		'address',
-		'area_uuid',
+//		'area_uuid',
     'contact_name',
     'phone'
 	];
@@ -68,7 +68,7 @@ class Transporter extends Model
 			'address' => 'Character02',
       'contact_name' => 'Character03',
       'phone' => 'Character04',
-			'area_uuid' => 'Key2',
+//			'area_uuid' => 'Key2',
 			'created_at' => 'Date01',
 			'updated_at' => 'Date02',
 			'deleted_at' => 'Date03',
