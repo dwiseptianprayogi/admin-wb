@@ -24,8 +24,10 @@ class WeightBridge extends Model
 	public $timestamps = false;
 
 	protected $casts = [
-		'weight_out' => 'integer',
-		'weight_in' => 'integer',
+		'weight_out' => 'float',
+		'weight_in' => 'float',
+		'weight_netto' => 'float',
+		'weight_standart' => 'float',
 	];
 
 	protected $fillable = [
