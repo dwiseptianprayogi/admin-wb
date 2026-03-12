@@ -1,0 +1,129 @@
+{
+  "menu": [
+    {
+      "url": "/",
+      "name": "Dashboards",
+      "icon": "menu-icon tf-icons bx bx-home-circle",
+      "slug": "dashboard",
+      "submenu": [
+        {
+          "url": "/",
+          "name": "Home",
+          "slug": "dashboard-analytics"
+        }
+      ]
+    },
+    {
+      "name": "Master Data",
+      "icon": "menu-icon tf-icons bx bx-layout",
+      "slug": "master-data",
+      "submenu": [
+        {
+          "url": "master-data/region",
+          "name": "Region",
+          "slug": "master-data.region.list",
+          "permission": "view region"
+        },
+        {
+          "url": "master-data/area",
+          "name": "Area",
+          "slug": "master-data.area.list",
+          "permission": "view area"
+        },
+        {
+          "url": "master-data/transporter",
+          "name": "Transporter",
+          "slug": "master-data.transporter.list",
+          "permission": "view transporter"
+        },
+        {
+          "url": "master-data/vehicle-type",
+          "name": "Vehicle Type",
+          "slug": "master-data.vehicle-type.list",
+          "permission": "view vehicle_type"
+        },
+        {
+          "url": "master-data/vehicle",
+          "name": "Vehicle",
+          "slug": "master-data.vehicle.list",
+          "permission": "view vehicle"
+        },
+        {
+          "url": "master-data/transporter-rate",
+          "name": "Transporter Rate",
+          "slug": "master-data.transporter-rate.list",
+          "permission": "view transporter_rate"
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "icon": "menu-icon tf-icons bx bx bx-file-blank",
+      "slug": "transaction",
+      "submenu": [
+        {
+          "url": "transaction/weight-bridge/receiving-material",
+          "name": "Receiving Material",
+          "slug": "transaction.weight-bridge.receiving-material",
+          "permission": "view receiving_material"
+        },
+        {
+          "url": "transaction/weight-bridge/finish-good",
+          "name": "Finish Good",
+          "slug": "transaction.weight-bridge.finish-good",
+          "permission": "view finish_good"
+        },
+        {
+          "url": "transaction/weight-bridge/data",
+          "name": "Data",
+          "slug": "transaction.weight-bridge.data",
+          "permission": "view data_wb"
+        },
+        {
+          "url": "transaction/weight-bridge/approval",
+          "name": "Approval",
+          "slug": "transaction.weight-bridge.approval.list",
+          "permission": "view approval"
+        },
+        {
+          "url": "transaction/weight-bridge/report",
+          "name": "Transporter Report",
+          "slug": "transaction.weight-bridge.report",
+          "permission": "view report"
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "icon": "menu-icon tf-icons bx bx bx-user",
+      "slug": "account",
+      "submenu": [
+        {
+          "url": "account/user",
+          "name": "User",
+          "slug": "account.user.list",
+          "permission": "view user"
+        },
+        {
+          "url": "account/group",
+          "name": "Group",
+          "slug": "account.group.list",
+          "permission": "view group"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "icon": "menu-icon tf-icons bx bx bx-cog",
+      "slug": "setting",
+      "submenu": [
+        {
+          "url": "setting/log",
+          "name": "Log",
+          "slug": "setting.log.list",
+          "permission": "view log"
+        }
+      ]
+    }
+  ]
+}
