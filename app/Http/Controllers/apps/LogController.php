@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LogController extends Controller
 {

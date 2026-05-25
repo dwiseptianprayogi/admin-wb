@@ -78,7 +78,7 @@
               </div>
             </div>
             <div class="col-4">
-              @can('manual input')
+              @can('manual_input')
               <div class="form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" id="toggle_input">
                 <label class="form-check-label" for="toggle_input">
@@ -239,11 +239,13 @@
     var route = '';
 
     $('#weightInBtn').click(function() {
+      $(this).prop('disabled', true);
       $('#weighbridgeForm').attr('action', "{{ route('transaction.weight-bridge.weightIn') }}" + "?" + queryKey + "=" + encodeURIComponent(queryValue));
       $('#weighbridgeForm').attr('method', 'POST');
       $('#weighbridgeForm').submit();
     });
     $('#weightOutBtn').click(function() {
+      $(this).prop('disabled', true);
       $('#weighbridgeForm').attr('action', "{{ route('transaction.weight-bridge.weightOut') }}" + "?" + queryKey + "=" + encodeURIComponent(queryValue));
       $('#weighbridgeForm').attr('method', 'POST');
       $('#weighbridgeForm').submit();

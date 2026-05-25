@@ -7,13 +7,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Report</title>
     <style>
+      @page {
+          margin: 40px 15px 25px 15px;
+      }
+
       body {
           font-family: Arial, sans-serif;
-          margin: 20px;
+          margin: 0;
       }
 
       .container-fluid {
-          padding: 15px;
+          padding: 0;
       }
 
       h4 {
@@ -38,15 +42,28 @@
 
       table td, table th {
           border: 1px solid #ddd;
-          padding: 8px;
+          padding: 5px 4px;
           text-align: left;
-          overflow: hidden; /* Hide overflow text */
-          word-wrap: break-word; /* Ensure long text wraps */
-          word-break: break-all; /* Break words if necessary */
+          overflow: hidden;
+          word-wrap: break-word;
+          word-break: break-word;
+      }
+
+      table td {
+          font-size: 10px;
       }
 
       table th {
           background-color: #f4f4f4;
+      }
+
+      /* Repeat table header on every PDF page */
+      thead {
+          display: table-header-group;
+      }
+
+      tfoot {
+          display: table-footer-group;
       }
 
       .bg-warning-subtle {
@@ -85,7 +102,7 @@
       }
 
       .footer {
-          bottom: -20px;
+          bottom: 0px;
           text-align: right;
           font-size: 12px;
       }
@@ -97,97 +114,86 @@
         Retrieved Date: {{ $current_date_time }}
     </div>
     <div class="container-fluid">
-        <h4>PT KERAMINDO MEGAH PERTIWI<br>PAYMENT TO TRANSPORTER</h4>
-        @foreach ($reports as $key => $report)
+        <h4>PT KERAMINDO MEGAH PERTIWI<br>ESTIMATED PAYMENT TO TRANSPORTER</h4>
         @php
-            // Initialize totals for the footer
-            $totalQuantity = 0;
-            $totalStdWeight = 0;
-            $totalWeight = 0;
-            $totalVar = 0;
-            $totalRate = 0;
-            $totalAmount = 0;
+        // Initialize totals for the footer
+        $totalQuantity = 0;
+        $totalStdWeight = 0;
+        $totalWeight = 0;
+        $totalVar = 0;
+        $totalRate = 0;
+        $totalAmount = 0;
+        $fmtRound = fn($value) => number_format(round((float)($value ?? 0), 0, PHP_ROUND_HALF_UP), 0);
         @endphp
+        @foreach ($reports as $key => $report)
+
+        {{-- Info Suplier: tabel terpisah, TIDAK masuk thead, hanya muncul sekali --}}
+        <table style="margin-bottom: 0; border-collapse: collapse; width: 100%;">
+            <tr>
+                <td style="border: 1px solid #ddd; width: 120px; font-size: 11px; padding: 5px 6px; font-weight: bold;">
+                    Supplier Code:
+                </td>
+                <td style="border: 1px solid #ddd; font-size: 11px; padding: 5px 6px; font-weight: bold;">
+                    {{ $report[0]->TransporterCode ?? 'N/A' }}
+                </td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; width: 120px; font-size: 11px; padding: 5px 6px; font-weight: bold;">
+                    Supplier Name:
+                </td>
+                <td style="border: 1px solid #ddd; font-size: 11px; padding: 5px 6px; font-weight: bold;">
+                    {{ empty($key) ? 'N/A' : $key }}
+                </td>
+            </tr>
+        </table>
+
+        {{-- Tabel data: thead hanya berisi baris kolom agar dompdf repeat di setiap halaman --}}
         <table>
-            <tr>
-                <th colspan="1" style="background: white; width:120px;">
-                    <div class="small text-start">
-                        <strong>Kode Suplier:</strong>
-                    </div>
-                </th>
-                <th colspan="4" style="background: white;">
-                    <div class="small text-start">
-                        <strong>{{ $report[0]->TransporterCode ?? 'N/A' }}</strong>
-                    </div>
-                </th>
-                <th colspan="1" style="background: white; border: none;">
-                </th>
-            </tr>
-            <tr>
-                <th colspan="1" style="background: white;">
-                    <div class="small text-start">
-                        <strong>Nama Suplier:</strong>
-                    </div>
-                </th>
-                <th colspan="4" style="background: white;">
-                    <div class="small text-start">
-                        <strong>{{ empty($key) ? 'N/A' : $key }}</strong>
-                    </div>
-                </th>
-                <th colspan="1" style="background: white; border: none;">
-                </th>
-                </th>
-            </tr>
-            <tr>
-                <th class="small border" style="width: 70px;">D/O NO</th>
-                <th class="small border" style="width: 90px;">Date</th>
-                <th class="small border" style="width: 70px;">Plate NO</th>
-                <th class="small border" style="width: 70px;">Vehicle Group</th>
-                <th class="small border" style="width: 90px;">Area</th>
-                <th class="small border" style="width: 70px;">Quantity</th>
-                <th class="small border" style="width: 70px;">WB.Doc</th>
-                <th class="small border" style="width: 70px;">STD Weight (Kg)</th>
-                <th class="small border" style="width: 70px;">Weight (Kg)</th>
-                <th class="small border" style="width: 70px;">Var (Kg)</th>
-                <th class="small border" style="width: 70px;">Rate</th>
-                <th class="small border" style="width: 100px;">Amount (Rp)</th>
-                <th class="small border" style="width: 90px;">Kwitansi NO</th>
-            </tr>
+            <thead>
+                <tr>
+                    <th class="small border" style="width: 80px; background-color: #f4f4f4;">D/O NO</th>
+                    <th class="small border" style="width: 65px; background-color: #f4f4f4;">Date</th>
+                    <th class="small border" style="width: 62px; background-color: #f4f4f4;">Plate NO</th>
+                    <th class="small border" style="width: 60px; background-color: #f4f4f4;">Vehicle Group</th>
+                    <th class="small border" style="width: 65px; background-color: #f4f4f4;">Area</th>
+                    <th class="small border" style="width: 45px; background-color: #f4f4f4; text-align: center;">Quantity</th>
+                    <th class="small border" style="width: 72px; background-color: #f4f4f4;">WB.Doc</th>
+                    <th class="small border" style="width: 63px; background-color: #f4f4f4;">STD Weight (Kg)</th>
+                    <th class="small border" style="width: 63px; background-color: #f4f4f4;">Weight (Kg)</th>
+                    <th class="small border" style="width: 52px; background-color: #f4f4f4;">Var (Kg)</th>
+                    <th class="small border" style="width: 60px; background-color: #f4f4f4;">Rate</th>
+                    <th class="small border" style="width: 150px; background-color: #f4f4f4;">Amount (Rp)</th>
+                    <th class="small border" style="width: 68px; background-color: #f4f4f4;">Kwitansi NO</th>
+                </tr>
+            </thead>
 
             <!-- Body Section -->
             <tbody>
-            @php
-              // Group data per area
-              $areaGroups = [];
-              foreach ($report as $data) {
-                  $areaKey = empty($data->Area) ? 'N/A' : $data->Area;
-                  $areaGroups[$areaKey][] = $data;
-              }
-              // Sort so 'N/A' is first
-              uksort($areaGroups, function($a, $b) {
-                  if ($a === 'N/A') return -1;
-                  if ($b === 'N/A') return 1;
-                  return strcmp($a, $b);
-              });
-            @endphp
-            @foreach($areaGroups as $area => $rows)
                 @php
-                    $subtotalQuantity = 0;
-                    $subtotalStdWeight = 0;
-                    $subtotalWeight = 0;
-                    $subtotalVar = 0;
-                    $subtotalRate = 0;
-                    $subtotalAmount = 0;
+                $subtotalQuantity = 0;
+                $subtotalStdWeight = 0;
+                $subtotalWeight = 0;
+                $subtotalVar = 0;
+                $subtotalRate = 0;
+                $subtotalAmount = 0;
                 @endphp
 
-                @foreach($rows as $data)
+                @foreach($report as $data)
                 @php
-                    $subtotalQuantity += $data->Quantity ?? 0;
-                    $subtotalStdWeight += $data->StdWeight ?? 0;
-                    $subtotalWeight += $data->Weight ?? 0;
-                    $subtotalVar += $data->VarKg ?? 0;
-                    $subtotalRate += $data->Rate ?? 0;
-                    $subtotalAmount += $data->Amount ?? 0;
+                $subtotalQuantity += $data->Quantity ?? 0;
+                $subtotalStdWeight += $data->StdWeight ?? 0;
+                $subtotalWeight += $data->Weight ?? 0;
+                $subtotalVar += $data->VarKg ?? 0;
+                $subtotalRate += $data->Rate ?? 0;
+                $subtotalAmount += $data->Amount ?? 0;
+
+                // Accumulate into the footer totals
+                $totalQuantity += $data->Quantity ?? 0;
+                $totalStdWeight += $data->StdWeight ?? 0;
+                $totalWeight += $data->Weight ?? 0;
+                $totalVar += $data->VarKg ?? 0;
+                $totalRate += $data->Rate ?? 0;
+                $totalAmount += $data->Amount ?? 0;
                 @endphp
                 <tr class="small">
                     <td>{{ empty($data->DoNo) ? 'N/A' : $data->DoNo }}</td>
@@ -197,83 +203,42 @@
                     <td>{{ empty($data->PlateNo) ? 'N/A' : $data->PlateNo }}</td>
                     <td>{{ empty($data->VehicleGroup) ? 'N/A' : $data->VehicleGroup }}</td>
                     <td>{{ empty($data->Area) ? 'N/A' : $data->Area }}</td>
-                    <td>{{ number_format($data->Quantity ?? 0, 0) }}</td>
+                    <td style="text-align: center;">{{ $fmtRound($data->Quantity) }}</td>
                     <td>{{ empty($data->WbDoc) ? 'N/A' : $data->WbDoc }}</td>
-                    <td>{{ number_format($data->StdWeight ?? 0, 2) }}</td>
-                    <td>{{ number_format($data->Weight ?? 0, 2) }}</td>
-                    <td>{{ number_format($data->VarKg ?? 0, 2) }}</td>
-                    <td>{{ number_format($data->Rate ?? 0, 2) }}</td>
-                    <td>{{ number_format($data->Amount ?? 0, 2) }}</td>
+                    <td>{{ $fmtRound($data->StdWeight) }}</td>
+                    <td>{{ $fmtRound($data->Weight) }}</td>
+                    <td>{{ $fmtRound($data->VarKg) }}</td>
+                    <td>{{ $fmtRound($data->Rate) }}</td>
+                    <td>{{ $fmtRound($data->Amount) }}</td>
                     <td>{{ empty($data->Kwitansi_NO) ? 'N/A' : $data->Kwitansi_NO }}</td>
                 </tr>
                 @endforeach
 
-                <!-- Subtotal per area -->
+                <!-- Subtotal Row -->
                 <tr class="table-secondary fw-bold small" style="background: #f4f4f4;">
-                    <td colspan="5" class="text-end">Sub Total</td>
-                    <td class="text-start">{{ number_format($subtotalQuantity, 0) }}</td>
+                    <td colspan="5" class="text-end">@if($is_multi_transporter)Sub @endif Total</td>
+                    <td style="text-align: center;">{{ $fmtRound($subtotalQuantity) }}</td>
                     <td></td>
-                    <td class="text-start">{{ number_format($subtotalStdWeight, 2) }}</td>
-                    <td class="text-start">{{ number_format($subtotalWeight, 2) }}</td>
-                    <td class="text-start">{{ number_format($subtotalVar, 2) }}</td>
-                    <td class="text-start">{{ number_format($subtotalRate, 2) }}</td>
-                    <td class="text-start">{{ number_format($subtotalAmount, 0) }}</td>
+                    <td class="text-start">{{ $fmtRound($subtotalStdWeight) }}</td>
+                    <td class="text-start">{{ $fmtRound($subtotalWeight) }}</td>
+                    <td class="text-start">{{ $fmtRound($subtotalVar) }}</td>
+                    <td></td>
+                    <td class="text-start">{{ $fmtRound($subtotalAmount) }}</td>
                     <td></td>
                 </tr>
-                @php
-                    // Accumulate total transporter
-                    $totalQuantity += $subtotalQuantity;
-                    $totalStdWeight += $subtotalStdWeight;
-                    $totalWeight += $subtotalWeight;
-                    $totalVar += $subtotalVar;
-                    $totalRate += $subtotalRate;
-                    $totalAmount += $subtotalAmount;
-                @endphp
             </tbody>
-            @endforeach
-
-            <!-- Total area (per transporter) -->
-            <tr class="table-primary fw-bold small" style="background: #f4f4f4;">
-                <td colspan="5" class="text-end">Total</td>
-                <td class="text-start">{{ number_format($totalQuantity, 0) }}</td>
-                <td></td>
-                <td class="text-start">{{ number_format($totalStdWeight, 2) }}</td>
-                <td class="text-start">{{ number_format($totalWeight, 2) }}</td>
-                <td class="text-start">{{ number_format($totalVar, 2) }}</td>
-                <td class="text-start">{{ number_format($totalRate, 2) }}</td>
-                <td class="text-start">{{ number_format($totalAmount, 0) }}</td>
-                <td></td>
-            </tr>
-            @php
-                // Accumulate grand total if multi transporter
-                if (!isset($grandTotalQuantity)) {
-                    $grandTotalQuantity = 0;
-                    $grandTotalStdWeight = 0;
-                    $grandTotalWeight = 0;
-                    $grandTotalVar = 0;
-                    $grandTotalRate = 0;
-                    $grandTotalAmount = 0;
-                }
-                $grandTotalQuantity += $totalQuantity;
-                $grandTotalStdWeight += $totalStdWeight;
-                $grandTotalWeight += $totalWeight;
-                $grandTotalVar += $totalVar;
-                $grandTotalRate += $totalRate;
-                $grandTotalAmount += $totalAmount;
-            @endphp
-
             <!-- Footer Totals -->
             @if($is_multi_transporter)
             @if($loop->last)
-            <tr class="table-success fw-bold small" style="background: #f4f4f4;">
-                <td colspan="5" class="text-end">Grand Total</td>
-                <td class="text-start">{{ number_format($grandTotalQuantity, 0) }}</td>
+            <tr class="table-dark fw-bold small" style="background: #f4f4f4;">
+                <td colspan="5" class="text-end">Total</td>
+                <td style="text-align: center;">{{ $fmtRound($totalQuantity) }}</td>
                 <td></td>
-                <td class="text-start">{{ number_format($grandTotalStdWeight, 2) }}</td>
-                <td class="text-start">{{ number_format($grandTotalWeight, 2) }}</td>
-                <td class="text-start">{{ number_format($grandTotalVar, 2) }}</td>
-                <td class="text-start">{{ number_format($grandTotalRate, 2) }}</td>
-                <td class="text-start">{{ number_format($grandTotalAmount, 0) }}</td>
+                <td class="text-start">{{ $fmtRound($totalStdWeight) }}</td>
+                <td class="text-start">{{ $fmtRound($totalWeight) }}</td>
+                <td class="text-start">{{ $fmtRound($totalVar) }}</td>
+                <td></td>
+                <td class="text-start">{{ $fmtRound($totalAmount) }}</td>
                 <td></td>
             </tr>
             @endif
@@ -284,14 +249,14 @@
     <script type="text/php">
       if (isset($pdf)) {
         $text = "Page {PAGE_NUM} of {PAGE_COUNT}";
-        $size = 10;
-        $font = $fontMetrics->getFont("Verdana");
+        $size = 12;
+        $font = $fontMetrics->getFont("Arial");
         $width = $fontMetrics->get_text_width($text, $font, $size);
-        $x = $pdf->get_width() - $width - 10;
-        $y = 10; // Adjust the y position to the top
+        $x = $pdf->get_width() - $width + 50; // Di atas kolom Amount
+        $y = 15; // Atas (di area margin 40px)
         $pdf->page_text($x, $y, $text, $font, $size);
       }
-  </script>
+    </script>
 </body>
 
 </html>

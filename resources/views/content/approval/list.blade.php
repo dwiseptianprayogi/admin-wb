@@ -36,10 +36,10 @@
         <tr>
           {{-- <td>{{$approval->weight_bridge->po_do}}</td> --}}
           <td>{{$approval->weight_bridge->vehicle->register_number ?? '-'}}</td>
-          <td>{{$approval->weight_bridge->weight_netto}} KG</td>
-          <td>{{$approval->weight_bridge->vehicle->vehicle_type->tolerance ?? '-'}} KG</td>
-          <td>{{$approval->weight_bridge->weight_standart ?? '-'}} KG</td>
-          <td class="text-danger">{{$approval->weight_bridge->difference}} KG</td>
+          <td>{{ $approval->weight_bridge->weight_netto !== null ? number_format(round($approval->weight_bridge->weight_netto, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
+          <td>{{ isset($approval->weight_bridge->vehicle->vehicle_type->tolerance) ? number_format(round($approval->weight_bridge->vehicle->vehicle_type->tolerance, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
+          <td>{{ $approval->weight_bridge->weight_standart !== null ? number_format(round($approval->weight_bridge->weight_standart, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
+          <td class="text-danger">{{ $approval->weight_bridge->difference !== null ? number_format(round($approval->weight_bridge->difference, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
           <td>{{$approval->weight_bridge->weight_out_date}}</td>
           <td><span class="badge fw-bold text-secondary bg-label-{{ (($approval->is_approve == true) ? 'success' : (($approval->is_reject == true) ? 'danger' : 'warning'))}}">{{$approval->weight_bridge->status}}</span></td>
           <td>{{$approval->action_date}}</td>

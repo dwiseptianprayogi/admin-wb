@@ -18,10 +18,20 @@ use App\Models\WeightBridgeApproval;
 use App\Http\Requests\WeightInRequest;
 use App\Http\Requests\WeightOutRequest;
 use App\Models\VehicleType;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class WeightBridgeController extends Controller
 {
+      private function roundHalfUp($value): float
+    {
+        return round((float)($value ?? 0), 0, PHP_ROUND_HALF_UP);
+    }
+
+    private function formatHalfUp($value): string
+    {
+        return number_format($this->roundHalfUp($value), 0);
+    }
+
     public function index()
     {
       $weightBridgeRawMaterial = WeightBridge::where('ShortChar01', 'rm')
@@ -40,11 +50,35 @@ class WeightBridgeController extends Controller
 
     public function view($weightBridgeUuid)
     {
-        $weightBridge = WeightBridge::findOrFail($weightBridgeUuid);
-        $currentDateTime = new DateTime();
-        $currentDateTime = $currentDateTime->format('Y-m-d H:i');
-        $template =
-            $weightBridge->weight_type == 'rm'
+        $weightBridge = WeightBridge::with(['vehicle' => function($q) {
+            $q->select(['Key1', 'Character01', 'Key2']);
+        }])
+        ->findOrFail($weightBridgeUuid);
+
+        if ($weightBridge->vehicle) {
+            $vehicleTypeKey = (string) $weightBridge->vehicle->getRawOriginal('Key2');
+            $vehicleType = null;
+
+            if ($vehicleTypeKey !== '') {
+                if (ctype_digit($vehicleTypeKey)) {
+                    $vehicleType = VehicleType::where('Key1', (int) $vehicleTypeKey)->first();
+                } else {
+                    $vehicleType = VehicleType::where('Character01', $vehicleTypeKey)->first();
+                }
+            }
+
+            $weightBridge->vehicle->setRelation('vehicle_type', $vehicleType);
+        }
+
+        // Format numbers in controller
+        $weightBridge->weight_in_fmt = $this->formatHalfUp($weightBridge->weight_in);
+        $weightBridge->weight_out_fmt = $this->formatHalfUp($weightBridge->weight_out);
+        $weightBridge->weight_netto_fmt = $this->formatHalfUp($weightBridge->weight_netto);
+        $weightBridge->weight_standart_fmt = $this->formatHalfUp($weightBridge->weight_standart);
+        $weightBridge->tolerance_fmt = $weightBridge->vehicle && $weightBridge->vehicle->vehicle_type ? $this->formatHalfUp($weightBridge->vehicle->vehicle_type->tolerance) : '';
+
+        $currentDateTime = (new DateTime())->format('Y-m-d H:i');
+        $template = $weightBridge->weight_type == 'rm'
             ? 'content.weight-bridge.view-receiving-material'
             : 'content.weight-bridge.view-finish-good';
         return view($template, [
@@ -653,6 +687,15 @@ class WeightBridgeController extends Controller
             foreach ($spbDetails as $spbDetail) {
                 $data[$spbDetail->TransporterName][] = $spbDetail;
             }
+            // Urutkan setiap grup berdasarkan Area A-Z, lalu date terbaru
+            foreach ($data as &$group) {
+                usort($group, function ($a, $b) {
+                    $areaCompare = strcasecmp($a->Area ?? '', $b->Area ?? '');
+                    if ($areaCompare !== 0) return $areaCompare;
+                    return strcmp($a->date ?? '', $b->date ?? '');
+                });
+            }
+            unset($group);
         }
         $isMultipleTransporter = false;
         if (count($data) > 1) {

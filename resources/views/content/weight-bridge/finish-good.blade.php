@@ -270,11 +270,13 @@
     var route = '';
 
     $('#weightInBtn').click(function() {
+      $(this).prop('disabled', true);
       $('#weighbridgeForm').attr('action', "{{ route('transaction.weight-bridge.weightIn') }}" + "?" + queryKey + "=" + encodeURIComponent(queryValue));
       $('#weighbridgeForm').attr('method', 'POST');
       $('#weighbridgeForm').submit();
     });
     $('#weightOutBtn').click(function() {
+      $(this).prop('disabled', true);
       $('#weighbridgeForm').attr('action', "{{ route('transaction.weight-bridge.weightOut') }}" + "?" + queryKey + "=" + encodeURIComponent(queryValue));
       $('#weighbridgeForm').attr('method', 'POST');
       $('#weighbridgeForm').submit();

@@ -8,7 +8,7 @@ use App\Models\WeightBridge;
 use App\Models\WeightBridgeApproval;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DeviceController extends Controller
 {

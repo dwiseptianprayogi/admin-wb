@@ -14,6 +14,11 @@ use PDF;
 
 class PrintController extends Controller
 {
+  private function roundHalfUp($value): int
+  {
+    return (int) round((float) ($value ?? 0), 0, PHP_ROUND_HALF_UP);
+  }
+
   public function generateSlipPDF($uuid)
   {
     // Declare @SlipNo NVARCHAR(MAX) = 'FG2411080006'
@@ -40,6 +45,13 @@ class PrintController extends Controller
     WHERE T1.NoDokumen_c = :slipNo
     ", ['slipNo' => $slip->slip_no]);
 
+    $totalQty = DB::select("
+    SELECT COALESCE(SUM(T2.OurInventoryShipQty), 0) AS total_qty
+    FROM ShipHead AS T1
+    LEFT JOIN ShipDtl AS T2 ON T1.PackNum = T2.PackNum AND T1.Company = T2.Company
+    WHERE T1.NoDokumen_c = :slipNo
+    ", ['slipNo' => $slip->slip_no]);
+
     $totalBeratStandart = 0;
     if ($slip->weight_type == 'fg') {
       if ($totalWeight[0]->beratStandart != 0) {
@@ -57,12 +69,12 @@ class PrintController extends Controller
       'vehicle_type' => $slip->vehicle?->vehicle_type->name,
       'weight_type' => $slip->weight_type,
       'remark' => $slip->remark,
-      'weight_in' => (int)$slip->weight_in,
+      'weight_in' => $this->roundHalfUp($slip->weight_in),
       'weight_in_time' => Carbon::parse($slip->weight_in_date)->format('H:i:s'),
       'weight_in_date' => Carbon::parse($slip->weight_in_date)->format('Y-m-d'),
-      'weight_out' => (int)$slip->weight_out,
+      'weight_out' => $this->roundHalfUp($slip->weight_out),
       'weight_out_date' => $slip->weight_out_date,
-      'weight_netto' => (int)$slip->weight_netto,
+      'weight_netto' => $this->roundHalfUp($slip->weight_netto),
       'weight_out_time' => $slip->weight_out_date ? Carbon::parse($slip->weight_out_date)->format('H:i:s') : '',
       'weight_out_date' => $slip->weight_out_date ? Carbon::parse($slip->weight_out_date)->format('Y-m-d') : '',
       'weight_in_by' => $slip->weight_in_by,
@@ -71,8 +83,8 @@ class PrintController extends Controller
       'actual_weight' => $slip->actual_weight,
       'status' => $slip->status,
       'spb_details' => $spbDetails,
-      // 'total_weight' => $totalWeightValue
-      'total_berat_standart' => $totalBeratStandart
+      'total_berat_standart' => $totalBeratStandart,
+      'total_qty' => $this->roundHalfUp($totalQty[0]->total_qty ?? 0)
     ];
 
     // Load the view and pass the data

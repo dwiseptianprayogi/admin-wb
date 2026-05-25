@@ -43,12 +43,12 @@
               <!-- Vehicle Type -->
               <div class="mb-3">
                 <label class="form-label" for="vehicle-type">Vehicle Type</label>
-                <input disabled type="text" class="form-control" value="{{$weight_bridge->vehicle->vehicle_type->name}}" id="vehicle-type" placeholder="Enter vehicle type" />
+                <input disabled type="text" class="form-control" value="{{$weight_bridge->vehicle?->vehicle_type?->name ?? ''}}" id="vehicle-type" placeholder="Enter vehicle type" />
               </div>
               <!-- Tolerance -->
               <div class="mb-3">
                 <label class="form-label" for="tolerance">Tolerance</label>
-                <input disabled type="number" class="form-control" value="{{$weight_bridge->vehicle->vehicle_type->tolerance}}" id="tolerance" placeholder="Enter tolerance" />
+                <input disabled type="number" class="form-control" value="{{$weight_bridge->vehicle?->vehicle_type?->tolerance ?? ''}}" id="tolerance" placeholder="Enter tolerance" />
               </div>
               <!-- Transporter Name -->
               <div class="mb-3">
@@ -60,7 +60,7 @@
               <!-- Weight In -->
               <div class="mb-3">
                 <label class="form-label" for="weight-in">Weight In</label>
-                <input disabled type="number" class="form-control  @error('weight_in') is-invalid @enderror" value="{{ round($weight_bridge->weight_in) }}" name="weight_in" id="weight-in" placeholder="Enter weight in" />
+                <input disabled type="number" class="form-control  @error('weight_in') is-invalid @enderror" value="{{ round((float)($weight_bridge->weight_in ?? 0), 0, PHP_ROUND_HALF_UP) }}" name="weight_in" id="weight-in" placeholder="Enter weight in" />
                 @error('weight_in')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -68,13 +68,13 @@
               <!-- Weight Out -->
               <div class="mb-3">
                 <label class="form-label" for="weight-out">Weight Out</label>
-                <input disabled type="number" class="form-control" name="weight_out" value="{{ round($weight_bridge->weight_out) }}" id="weight-out" placeholder="Enter weight out" />
+                <input disabled type="number" class="form-control" name="weight_out" value="{{ round((float)($weight_bridge->weight_out ?? 0), 0, PHP_ROUND_HALF_UP) }}" id="weight-out" placeholder="Enter weight out" />
               </div>
 
               <!-- Weight Netto -->
               <div class="mb-3">
                 <label class="form-label" for="weight-netto">Weight Netto</label>
-                <input disabled type="number" class="form-control" id="weight-netto" value="{{$weight_bridge->weight_netto}}" placeholder="Enter weight netto" disabled />
+                <input disabled type="number" class="form-control" id="weight-netto" value="{{ round((float)($weight_bridge->weight_netto ?? 0), 0, PHP_ROUND_HALF_UP) }}" placeholder="Enter weight netto" disabled />
               </div>
               <!-- Remark -->
               <div class="mb-3">

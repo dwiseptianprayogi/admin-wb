@@ -18,11 +18,203 @@ use App\Http\Controllers\authentications\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\dashboard\Analytics;
 use App\Http\Controllers\pages\AccountSettingsAccount;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 // Main Page Route
 Route::get('/', [Analytics::class, 'index'])->name('dashboard-analytics')->middleware('auth');
 Route::get('/device', [DeviceController::class, 'detail'])->name('device.detail')->middleware('auth');
+
+// Debug route: contoh report dengan data dummy (untuk testing repeat header PDF & CSV)
+Route::get('/debug/report-dummy', function (\Illuminate\Http\Request $request) {
+    $fmtRound = fn($v) => number_format(round((float)($v ?? 0), 0, PHP_ROUND_HALF_UP), 0);
+
+    // Helper buat baris dummy
+    $makeRow = fn($i, $transCode, $transName) => (object)[
+        'TransporterCode' => $transCode,
+        'TransporterName' => $transName,
+        'DoNo'            => 'PK.' . str_pad($i, 5, '0', STR_PAD_LEFT) . '/04/26',
+        'date'            => '2026-04-' . str_pad(($i % 20) + 1, 2, '0', STR_PAD_LEFT),
+        'PlateNo'         => 'B ' . (1000 + $i) . ' ZA',
+        'VehicleGroup'    => $i % 2 === 0 ? 'COLT' : 'FUSO',
+        'Area'            => $i % 3 === 0 ? 'JAKARTA' : ($i % 3 === 1 ? 'BANDUNG' : 'SURABAYA'),
+        'Quantity'        => 3 + ($i % 5),
+        'WbDoc'           => 'FG26040' . str_pad($i, 2, '0', STR_PAD_LEFT),
+        'StdWeight'       => 6500 + ($i * 100),
+        'Weight'          => 6450 + ($i * 98),
+        'VarKg'           => 50 + ($i * 2),
+        'Rate'            => 500000,
+        'Amount'          => (6450 + ($i * 98)) * 500000,
+        'Kwitansi_NO'     => 'KWT-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+    ];
+
+    // TR-001: 50 baris (cukup untuk melewati 3+ halaman, untuk test repeat header)
+    $data = [];
+    for ($i = 1; $i <= 50; $i++) {
+        $data['AMBIL SENDIRI'][] = $makeRow($i, 'TR-001', 'AMBIL SENDIRI');
+    }
+    for ($i = 51; $i <= 70; $i++) {
+        $data['SAUDARA DWI TRANSPORTINDO PT'][] = $makeRow($i, 'TR-002', 'SAUDARA DWI TRANSPORTINDO PT');
+    }
+    // Urutkan setiap grup berdasarkan Area A-Z, lalu date
+    foreach ($data as &$group) {
+        usort($group, function ($a, $b) {
+            $areaCompare = strcasecmp($a->Area ?? '', $b->Area ?? '');
+            if ($areaCompare !== 0) return $areaCompare;
+            return strcmp($a->date ?? '', $b->date ?? '');
+        });
+    }
+    unset($group);
+    $isMultipleTransporter = true;
+
+    // --- Export PDF ---
+    if ($request->get('export') === 'PDF') {
+        $pdf = Pdf::loadView('content.weight-bridge.print.report', [
+            'reports'              => $data,
+            'is_multi_transporter' => $isMultipleTransporter,
+            'current_date_time'    => now()->format('d-m-Y H:i:s'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download('report-dummy.pdf');
+    }
+
+    // --- Export CSV ---
+    $fileName = 'report-dummy.csv';
+    $headers  = [
+        'Content-type'        => 'text/csv',
+        'Content-Disposition' => "attachment; filename=$fileName",
+        'Pragma'              => 'no-cache',
+        'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+        'Expires'             => '0',
+    ];
+
+    $callback = function () use ($data, $isMultipleTransporter, $fmtRound) {
+        $file = fopen('php://output', 'w');
+
+        $grandTotalQty = $grandTotalStd = $grandTotalWt = $grandTotalVar = $grandTotalAmt = 0;
+
+        foreach ($data as $key => $report) {
+            $subQty = $subStd = $subWt = $subVar = $subAmt = 0;
+
+            fputcsv($file, ['Kode Suplier:', $report[0]->TransporterCode ?? 'N/A']);
+            fputcsv($file, ['Nama Suplier:', $key ?? 'N/A']);
+            fputcsv($file, ['D/O NO','Date','Plate NO','Vehicle Group','Area','Quantity','WB.Doc','STD Weight (Kg)','Weight (Kg)','Var (Kg)','Rate','Amount (Rp)','Kwitansi NO']);
+
+            foreach ($report as $row) {
+                $subQty  += $row->Quantity  ?? 0;
+                $subStd  += $row->StdWeight ?? 0;
+                $subWt   += $row->Weight    ?? 0;
+                $subVar  += $row->VarKg     ?? 0;
+                $subAmt  += $row->Amount    ?? 0;
+                fputcsv($file, [
+                    $row->DoNo, $row->date, $row->PlateNo, $row->VehicleGroup, $row->Area,
+                    $fmtRound($row->Quantity), $row->WbDoc, $fmtRound($row->StdWeight),
+                    $fmtRound($row->Weight), $fmtRound($row->VarKg), $fmtRound($row->Rate),
+                    $fmtRound($row->Amount), $row->Kwitansi_NO,
+                ]);
+            }
+
+            fputcsv($file, ['','','','', ($isMultipleTransporter ? 'Sub ' : '') . 'Total',
+                $fmtRound($subQty),'', $fmtRound($subStd), $fmtRound($subWt),
+                $fmtRound($subVar),'', $fmtRound($subAmt),'']);
+            fputcsv($file, []);
+
+            $grandTotalQty += $subQty; $grandTotalStd += $subStd;
+            $grandTotalWt  += $subWt;  $grandTotalVar += $subVar; $grandTotalAmt += $subAmt;
+        }
+
+        if ($isMultipleTransporter) {
+            fputcsv($file, ['','','','','Total',
+                $fmtRound($grandTotalQty),'', $fmtRound($grandTotalStd), $fmtRound($grandTotalWt),
+                $fmtRound($grandTotalVar),'', $fmtRound($grandTotalAmt),'']);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+})->name('debug.reportDummy');
+
+// Debug route: contoh slip timbang tanpa akses database (untuk testing print lokal)
+Route::get('/debug/print-sample', function () {
+    $spbDetails = [
+        (object) [
+            'LegalNumber' => 'SPK.001/11/25',
+            'TotalNetWeight' => 1500.0,
+            'OrderLine' => 1,
+            'PartNum' => 'CD1 TILES',
+            'beratStandarPergenteng' => 3.675,
+        ],
+        (object) [
+            'LegalNumber' => 'SPK.001/11/25',
+            'TotalNetWeight' => 507.0,
+            'OrderLine' => 2,
+            'PartNum' => 'CD1 TILES',
+            'beratStandarPergenteng' => 3.675,
+        ],
+    ];
+
+    $data = [
+        'slip_no' => '23389',
+        'vehicle_no' => 'B 9127 ZA',
+        'transporter_name' => 'SAUDARA DWI TRANSPORTINDO PT',
+        'vehicle_type' => 'COLT DIESEL',
+        'weight_type' => 'fg',
+        'remark' => 'Muatan: Finish Good',
+        'weight_in' => 4370.0,
+        'weight_in_time' => '09:29:00',
+        'weight_in_date' => '2025-11-05',
+        'weight_out' => 14507.0,
+        'weight_netto' => 10087.0,
+        'weight_out_time' => '17:01:03',
+        'weight_out_date' => '2025-11-05',
+        'weight_in_by' => 'admin',
+        'driver_name' => 'Sopir A',
+        'po_do' => 'DO-12345',
+        'actual_weight' => null,
+        'status' => 'FG-OUT',
+        'spb_details' => $spbDetails,
+        'total_berat_standart' => 1.0,
+        'total_qty' => 3675.0,
+    ];
+
+    // Generate PDF contoh slip tanpa akses SQL Server
+    $pdf = Pdf::loadView('content.weight-bridge.print.slip', $data);
+    $pdf->setPaper('80mm', 'portrait');
+    return $pdf->stream('Slip_SAMPLE.pdf');
+})->name('debug.printSample');
+
+// Debug route: contoh slip RM (Raw Material) tanpa akses database
+Route::get('/debug/print-rm-sample', function () {
+    $data = [
+        'slip_no'           => 'RM2604210001',
+        'vehicle_no'        => 'B 5678 CD',
+        'transporter_name'  => 'LUMBUNG BERLIAN UTAMA CV', // contoh nama transporter RM
+        'vehicle_type'      => null,
+        'weight_type'       => 'rm',
+        'remark'            => 'Batu Kapur / Limestone',
+        'weight_in'         => 18500.0,
+        'weight_in_time'    => '08:15:00',
+        'weight_in_date'    => '2026-04-21',
+        'weight_out'        => 7200.0,
+        'weight_netto'      => 11300.0,
+        'weight_out_time'   => '09:45:00',
+        'weight_out_date'   => '2026-04-21',
+        'weight_in_by'      => 'admin',
+        'driver_name'       => 'Budi Santoso',
+        'po_do'             => 'PO-RM-2026-0042',
+        'actual_weight'     => null,
+        'status'            => 'RM-OUT',
+        'spb_details'       => [],
+        'total_berat_standart' => 0,
+        'total_qty'         => 0,
+    ];
+
+    $pdf = Pdf::loadView('content.weight-bridge.print.slip', $data);
+    $pdf->setPaper('80mm', 'portrait');
+    return $pdf->stream('Slip_RM_SAMPLE.pdf');
+})->name('debug.printRmSample');
+
 
 // Master Data Route
 Route::prefix('master-data')->name('master-data.')->middleware('auth')->group(function () {

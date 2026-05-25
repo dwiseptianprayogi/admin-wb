@@ -7,7 +7,7 @@
       "slug": "dashboard",
       "submenu": [
         {
-          "url": "/",
+          "url": "/",   
           "name": "Home",
           "slug": "dashboard-analytics"
         }

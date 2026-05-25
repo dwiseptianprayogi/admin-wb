@@ -27,7 +27,7 @@
 <!-- Hoverable Table rows -->
 <div class="card">
   <div class="table-responsive text-nowrap p-4">
-    <table id="vehicleTable" lass="table table-hover">
+    <table id="vehicleTable" class="table table-hover">
       <thead>
         <tr>
           <th>Register Number</th>
@@ -43,12 +43,10 @@
         @foreach($vehicles as $vehicle)
         <tr>
           <td>{{ $vehicle->register_number }}</td>
-          <td>{{ $vehicle->vehicle_type?->name }}</td>
-          <td>{{ $vehicle->transporter?->name }}</td>
+          <td>{{ $vehicle->vehicle_type_name ?? '-' }}</td>
+          <td>{{ $vehicle->active_transporter_name ?? '-' }}</td>
           <td>
-            @php
-            $transporterNames = $vehicle->vehicle_transporters->pluck('transporter.name')->implode(', ');
-            @endphp
+            @php $transporterNames = $vehicle->other_transporter_names ?? ''; @endphp
             <span
               data-bs-toggle="tooltip"
               title="{{ $transporterNames }}"

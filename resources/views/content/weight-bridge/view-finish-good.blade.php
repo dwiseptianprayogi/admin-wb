@@ -43,12 +43,12 @@
               <!-- Vehicle Type -->
               <div class="mb-3">
                 <label class="form-label" for="vehicle-type">Vehicle Type</label>
-                <input disabled type="text" class="form-control" value="{{$weight_bridge->vehicle?->vehicle_type->name}}" id="vehicle-type" placeholder="Enter vehicle type" />
+                <input disabled type="text" class="form-control" value="{{$weight_bridge->vehicle?->vehicle_type?->name ?? ''}}" id="vehicle-type" placeholder="Enter vehicle type" />
               </div>
               <!-- Tolerance -->
               <div class="mb-3">
                 <label class="form-label" for="tolerance">Tolerance</label>
-                <input disabled type="number" class="form-control" value="{{ number_format($weight_bridge->vehicle?->vehicle_type->tolerance, 2) }}" id="tolerance" placeholder="Enter tolerance" />
+                <input disabled type="number" class="form-control" value="{{ $weight_bridge->tolerance_fmt !== '' ? $weight_bridge->tolerance_fmt : 0 }}" id="tolerance" placeholder="Enter tolerance" />
               </div>
               <!-- Transporter Name -->
               <div class="mb-3">
@@ -60,7 +60,7 @@
               <!-- Weight In -->
               <div class="mb-3">
                 <label class="form-label" for="weight-in">Weight In</label>
-                <input disabled type="text" class="form-control  @error('weight_in') is-invalid @enderror" value="{{ number_format($weight_bridge->weight_in, 2) }}" name="weight_in" id="weight-in" placeholder="Enter weight in" />
+                <input disabled type="text" class="form-control  @error('weight_in') is-invalid @enderror" value="{{ $weight_bridge->weight_in_fmt }}" name="weight_in" id="weight-in" placeholder="Enter weight in" />
                 @error('weight_in')
                 <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -68,19 +68,19 @@
               <!-- Weight Out -->
               <div class="mb-3">
                 <label class="form-label" for="weight-out">Weight Out</label>
-                <input disabled type="text" class="form-control" name="weight_out" value="{{ number_format($weight_bridge->weight_out, 2) }}" id="weight-out" placeholder="Enter weight out" />
+                <input disabled type="text" class="form-control" name="weight_out" value="{{ $weight_bridge->weight_out_fmt }}" id="weight-out" placeholder="Enter weight out" />
               </div>
 
               <!-- Weight Netto -->
               <div class="mb-3">
                 <label class="form-label" for="weight-netto">Weight Netto</label>
-                <input type="text" class="form-control" id="weight-netto" value="{{number_format($weight_bridge->weight_netto, 2)}}" placeholder="Enter weight netto" disabled />
+                <input type="text" class="form-control" id="weight-netto" value="{{ $weight_bridge->weight_netto_fmt }}" placeholder="Enter weight netto" disabled />
               </div>
 
               <!-- Weight Standart -->
               <div class="mb-3">
                 <label class="form-label" for="weight-standart">Weight Standart</label>
-                <input disabled type="text" class="form-control" id="weight-standart" value="{{ number_format($weight_bridge->weight_standart, 2) }}" placeholder="Enter weight standart" disabled />
+                <input disabled type="text" class="form-control" id="weight-standart" value="{{ $weight_bridge->weight_standart_fmt }}" placeholder="Enter weight standart" disabled />
               </div>
               <!-- Remark -->
               <div class="mb-3">
@@ -106,7 +106,7 @@
               <!-- Difference -->
               <div class="mb-3">
                 <label class="form-label" for="difference">Difference</label>
-                <input disabled type="text" class="form-control" id="difference" value="{{ number_format($weight_bridge->difference, 2) }}" placeholder="Enter Difference" disabled />
+                <input disabled type="text" class="form-control" id="difference" value="{{ number_format(round((float)($weight_bridge->difference ?? 0), 0, PHP_ROUND_HALF_UP), 0) }}" placeholder="Enter Difference" disabled />
               </div>
             </div>
           </div>
