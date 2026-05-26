@@ -717,7 +717,7 @@ class WeightBridgeController extends Controller
             ->setOption('isRemoteEnabled', true);
 
 
-            return $pdf->stream("report.pdf");
+            return $pdf->download("report.pdf");
         }
 
         if ($request->get('export') == 'CSV') {
