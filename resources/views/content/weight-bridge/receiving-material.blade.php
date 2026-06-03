@@ -78,7 +78,7 @@
               </div>
             </div>
             <div class="col-4">
-              @can('manual_input')
+              @can('manual input')
               <div class="form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" id="toggle_input">
                 <label class="form-check-label" for="toggle_input">

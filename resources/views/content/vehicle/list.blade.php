@@ -43,10 +43,12 @@
         @foreach($vehicles as $vehicle)
         <tr>
           <td>{{ $vehicle->register_number }}</td>
-          <td>{{ $vehicle->vehicle_type_name ?? '-' }}</td>
-          <td>{{ $vehicle->active_transporter_name ?? '-' }}</td>
+          <td>{{ $vehicle->vehicle_type?->name }}</td>
+          <td>{{ $vehicle->transporter?->name }}</td>
           <td>
-            @php $transporterNames = $vehicle->other_transporter_names ?? ''; @endphp
+            @php
+            $transporterNames = $vehicle->vehicle_transporters->pluck('transporter.name')->implode(', ');
+            @endphp
             <span
               data-bs-toggle="tooltip"
               title="{{ $transporterNames }}"
