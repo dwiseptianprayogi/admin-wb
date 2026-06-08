@@ -291,11 +291,11 @@
         var weightNetto = formatNumber(weightOut - weightIn, 2);
         $('#weight-netto').val(weightNetto);
 
-        var difference = Math.abs((weightOut - weightIn) - weightStandartEpicor);
+        var difference = (weightOut - weightIn) - weightStandartEpicor;
         $('#difference').val(formatNumber(difference, 2));
 
         var diff = $('#difference').val();
-        if (Number(diff) > Number(tolerance)) {
+        if (Math.abs(Number(diff)) > Number(tolerance)) {
           $('#difference').addClass('is-invalid');
         } else {
           $('#difference').removeClass('is-invalid');
