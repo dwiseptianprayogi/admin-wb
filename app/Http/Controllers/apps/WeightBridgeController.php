@@ -391,7 +391,7 @@ class WeightBridgeController extends Controller
             LEFT JOIN ShipDtl AS T2 ON T1.PackNum = T2.PackNum AND T1.Company = T2.Company
             WHERE T1.NoDokumen_c = :slipNo
         ", ['slipNo' => $weightBridge->slip_no]);
-            $difference = ($weightNetto - ($totalWeight[0]->TotalWeight ?? 0));
+            $difference = $weightNetto - ($totalWeight[0]->TotalWeight ?? 0);
             $weightBridge->difference = $difference;
             $weightBridge->transporter_name = $vehicle->transporter?->name ?? '';
             $weightBridge->update();
@@ -420,7 +420,7 @@ class WeightBridgeController extends Controller
             //         ->route('transaction.weight-bridge.finish-good')
             //         ->with('warning', 'Weight OUT need approval.');
             // }
-            if ($difference > $tolerance) {
+            if (abs($difference) > $tolerance) {
                 $weightBridgeApproval = WeightBridgeApproval::create([
                     'weight_bridge_uuid' => $weightBridge->uuid,
                 ]);
