@@ -33,13 +33,21 @@
       </thead>
       <tbody class="table-border-bottom-0">
         @foreach($approvals as $approval)
+        @php
+          $approvalDifference = null;
+          if ($approval->weight_bridge->weight_netto !== null && $approval->weight_bridge->weight_standart !== null) {
+            $approvalDifference = (float) $approval->weight_bridge->weight_netto - (float) $approval->weight_bridge->weight_standart;
+          } elseif ($approval->weight_bridge->difference !== null) {
+            $approvalDifference = $approval->weight_bridge->difference;
+          }
+        @endphp
         <tr>
           {{-- <td>{{$approval->weight_bridge->po_do}}</td> --}}
           <td>{{$approval->weight_bridge->vehicle->register_number ?? '-'}}</td>
           <td>{{ $approval->weight_bridge->weight_netto !== null ? number_format(round($approval->weight_bridge->weight_netto, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
           <td>{{ isset($approval->weight_bridge->vehicle->vehicle_type->tolerance) ? number_format(round($approval->weight_bridge->vehicle->vehicle_type->tolerance, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
           <td>{{ $approval->weight_bridge->weight_standart !== null ? number_format(round($approval->weight_bridge->weight_standart, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
-          <td class="text-danger">{{ $approval->weight_bridge->difference !== null ? number_format(round($approval->weight_bridge->difference, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
+          <td class="text-danger">{{ $approvalDifference !== null ? number_format(round($approvalDifference, 0, PHP_ROUND_HALF_UP), 0) : '-' }} KG</td>
           <td>{{$approval->weight_bridge->weight_out_date}}</td>
           <td><span class="badge fw-bold text-secondary bg-label-{{ (($approval->is_approve == true) ? 'success' : (($approval->is_reject == true) ? 'danger' : 'warning'))}}">{{$approval->weight_bridge->status}}</span></td>
           <td>{{$approval->action_date}}</td>
