@@ -18,20 +18,10 @@ class VehicleController extends Controller
 {
   public function index()
   {
-    $vehicles = Vehicle::select(['Key1', 'Character01', 'ShortChar04'])
-      ->limit(100)
-      ->get();
-
-    foreach ($vehicles as $vehicle) {
-      $vehicle->vehicle_type_name = $vehicle->type ?? '-';
-      $vehicle->active_transporter_name = '-';
-      $vehicle->other_transporter_names = '-';
-    }
-
     return view(
       'content.vehicle.list',
       [
-        'vehicles' => $vehicles
+        'vehicles' => Vehicle::get()
       ]
     );
   }
